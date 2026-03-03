@@ -1,1 +1,4 @@
-db i am
+#MuseDiary
+
+## Tech Stack
+* **Database**: MongoDB
