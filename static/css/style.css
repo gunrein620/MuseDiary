@@ -16,6 +16,11 @@ body {
     background-color: #f8f9fa;
 }
 
+/* login html의 각 입력 줄에 여백 추가 */
+div {
+    margin-bottom: 20px;
+}
+
 .required::before {
     content: '*';
     margin-right: 2px;
