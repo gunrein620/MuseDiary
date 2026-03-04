@@ -128,7 +128,20 @@ def daily_mood():
 @app.route("/count", methods=["GET", "POST"])
 def count():
     if request.method == "GET":
-        return render_template("count.html")
+        user_id = "test"
+        mood_counts = db.mood_mapping.find_one({"userId": user_id}) or {}
+
+        return render_template(
+            "count.html",
+            count_happy=mood_counts.get("happy", 0),
+            count_angry=mood_counts.get("angry", 0),
+            count_sad=mood_counts.get("sad", 0),
+            count_pleasure=mood_counts.get("pleasure", 0),
+            recommend_happy="-",
+            recommend_angry="-",
+            recommend_sad="-",
+            recommend_pleasure="-",
+        )
     
     # if 
 
