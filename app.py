@@ -111,13 +111,26 @@ def daily_mood():
             {"$inc" : {mood : 1}},
             upsert = True
         )
-        return redirect(url_for("daily_mood"))
+        # 클릭시 페이지 넘길꺼
+        if mood == happy :
+            return render_template("happy.html")
+        elif mood == angry :
+            return render_template("angry.html")
+        elif mood == sad :
+            return render_template("sad.html")
+        elif mood == pleasure :
+            return render_template("sad.html")
+
+        # return redirect(url_for("daily_mood"))
     return render_template("daily_mood.html")
 
 
-# @app.route("/count", methods=["GET", "POST"])
-# def count():
-#     if request.method == "GET":
+@app.route("/count", methods=["GET", "POST"])
+def count():
+    if request.method == "GET":
+        return render_template("count.html")
+    
+    # if 
 
 @app.route("/happy")
 def happy():
