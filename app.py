@@ -87,11 +87,58 @@ def register():
 @app.route("/daily-mood", methods=["GET", "POST"])
 def daily_mood():
     if request.method == "POST":
-        selected_mood = request.form.get("mood")
-        typed_mood = request.form.get("mood-list")
-        today = datetime.datetime.now()
-            
+        userId = "test" #get_current_user_id(test)  # 사용자 로그인 Id get
+        
+        mood = request.form.get("mood") # 기분 아이콘 
+        content = request.form.get("content","") # 한줄 일기  
+        createdAt = datetime.datetime.now().strftime("%Y-%m-%d'T'%H:%M:%S") # 현재 날짜 시간
+
+        # diary_entries 입력
+        diaryEntriesData = {
+            "content" :content,
+            "createdAt" : datetime.datetime.now().strftime("%Y-%m-%d'T'%H:%M:%S"), # 현재 날짜 시간
+            "mood" : mood
+        }
+        db.diary_entries.update_one(
+            {"userId" : userId},
+            {"$push":{"analysisData" : diaryEntriesData}},
+            upsert = True
+        )
+        print("args:", request.args)
+        print("form:", request.form)
+        db.mood_mapping.update_one(
+            {"userId" : userId},
+            {"$inc" : {mood : 1}},
+            upsert = True
+        )
+        return redirect(url_for("daily_mood"))
     return render_template("daily_mood.html")
+
+
+# @app.route("/count", methods=["GET", "POST"])
+# def count():
+#     if request.method == "GET":
+
+@app.route("/happy")
+def happy():
+    return render_template("happy.html")
+
+
+@app.route("/angry")
+def angry():
+    return render_template("angry.html")
+
+
+@app.route("/sad")
+def sad():
+    return render_template("sad.html")
+
+
+@app.route("/pleasure")
+def pleasure():
+    return render_template("pleasure.html")
+    
+
     
     
 if __name__ == "__main__":
