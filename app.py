@@ -1,28 +1,29 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify, make_response
-from flask_login import LoginManager, login_user, login_required
 from flask_bcrypt import Bcrypt
 from pymongo import MongoClient
 import jwt
 import datetime
 
 client = MongoClient('localhost', 27017)
-# db = client.KKK # name 대기
+db = client.muse_diary
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "SECRET_KEY"
 bcrypt = Bcrypt(app) # bcrypt 초기화
 
-login_manager = LoginManager()
-login_manager.init_app(app) # login_manager 애플리케이션과 연계
-login_manager.login_view = "login" # 로그인 안했을때 이동할 route
+# 홈
+@app.route("/")
+def home():
+    return redirect(url_for("login"))
+
 
 # 로그인 페이지
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    data = request.get_json()
-    if not data:
-        return "JSON 형식이 아닙니다.", 400
+    if request.method == "GET":
+        return render_template("login.html")
 
+    data = request.get_json(silent=True) or request.form
     id = data.get("id")
     pw = data.get("pw")
 
@@ -48,26 +49,34 @@ def login():
     return "로그인실패", 401
 
 # 회원가입
-@app.route("/register", methods=["POST"])
+@app.route("/register", methods=["GET", "POST"])
 def register():
-    if request.method == "POST":
-        id = request.json["id"]
-        email = request.json["email"]
-        pw = request.json["pw"]
+    if request.method == "GET":
+        return render_template("register.html")
 
-        # 중복 ID / Email 확인
-        
-        hash_pw = bcrypt.generate_password_hash(pw).decode("utf-8") # pw 해쉬암호화
+    data = request.get_json(silent=True) or request.form
+    id = data.get("id")
+    email = data.get("email")
+    pw = data.get("pw")
 
-        db.users.insert_one({
-            "id" : id,
-            "email" : email,
-            "pw" : hash_pw
-            })            
-        return redirect(url_for("login"))
+    if not id or not email or not pw:
+        return "ID, Email, PW 누락", 400
 
-    return render_template("register.html")
+    # 중복 ID / Email 확인
+    hash_pw = bcrypt.generate_password_hash(pw).decode("utf-8") # pw 해쉬암호화
+
+    db.users.insert_one({
+        "id" : id,
+        "email" : email,
+        "pw" : hash_pw
+    })
+    return redirect(url_for("login"))
+
+
+@app.route("/daily-mood", methods=["GET", "POST"])
+def daily_mood():
+    return render_template("daily_mood.html")
     
     
 if __name__ == "__main__":
-    app.run("0.0.0.0", port=5000, debug=True)
+    app.run("0.0.0.0", port=8080, debug=True)

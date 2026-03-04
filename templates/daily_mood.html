@@ -1,19 +1,35 @@
-{% extends "login.html" %}
+{% extends "base.html" %}
 
-{% block styles %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-{% endblock styles %}
-{% block title %}회원가입{% endblock title %}
-{% block head %}{{ super() }}{% endblock head %}
-
+{% block title %}오늘의 감정{% endblock title %}
 
 {% block content %}
-    <h2>회원가입</h2>
-    <form class="register-form" form action="/register" method="POST">
-        <input type="text" name="username" placeholder="아이디" required>
-        <input type="email" name="email" placeholder="이메일" required>
-        <input type="password" name="password" placeholder="비밀번호" required>
-        
-        <button type="submit">회원가입</button>
-    </form>
+<h2>오늘의 감정 기록</h2>
+<p>로그인 후 감정과 추천 음악을 기록하는 페이지입니다.</p>
+
+<form method="POST" class="mood-form">
+    <p>오늘의 기분</p>
+    <input type="hidden" id="mood" name="mood" value="희">
+
+    <div class="mood-buttons" role="group" aria-label="감정 선택">
+        <button type="button" class="mood-btn is-selected" data-mood="희">희</button>
+        <button type="button" class="mood-btn" data-mood="노">노</button>
+        <button type="button" class="mood-btn" data-mood="애">애</button>
+        <button type="button" class="mood-btn" data-mood="락">락</button>
+    </div>
+
+    <button type="submit">저장</button>
+</form>
+
+<script>
+    const moodInput = document.getElementById("mood");
+    const moodButtons = document.querySelectorAll(".mood-btn");
+
+    moodButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            moodInput.value = button.dataset.mood;
+            moodButtons.forEach((item) => item.classList.remove("is-selected"));
+            button.classList.add("is-selected");
+        });
+    });
+</script>
 {% endblock content %}

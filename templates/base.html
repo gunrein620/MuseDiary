@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MuseDiary{% endblock title %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('login') }}">LOGIN</a>
+        <a href="{{ url_for('register') }}">REGISTER</a>
+        <a href="{{ url_for('daily_mood') }}">DAILY MOOD</a>
+    </nav>
+
+    <main>
+        {% block content %}{% endblock content %}
+    </main>
+
+    <footer>
+        <p>&copy; MuseDiary</p>
+    </footer>
+</body>
+</html>
