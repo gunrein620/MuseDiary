@@ -5,13 +5,29 @@
 
 ### 📊 Database Structure (JSON)
 
-우리의 서비스는 MongoDB를 사용하며, 'users' 컬렉션의 데이터 구조는 다음과 같습니다.
+### 📊 Database Structure (JSON)
 
-| Field | Type | Description | Example |
-| :--- | :--- | :--- | :--- |
-| `ID` | String | 사용자 ID | "Gyutae" |
-| `email` | String | 사용자 이메일 | "test@gmail.com" |
-| `PW` | String | 해시된 비밀번호 | "$2b$12..." |
-| `mood` | Object | mood | { "happy": happy, "angry": angry, "love": love, "pleasure": pleasure } |
-| `comment` | String | comment | "Such a wonderful day!" |
-| `Date` | Date | Created Date | 2026-03-04 |
+```javascript
+
+const moodMapping = {
+    happy: 10,
+    angry: 1,
+    love: 10,
+    pleasure: 6,
+  };
+
+const userSchema = {
+    ID: "String",
+    email: "String",
+    PW: "String"
+
+    // 2. Number by moodMapping
+    moodScore: {
+        type: "Number",
+        // When user click 'happy', enter 10
+    },
+
+    comment: "String",
+    date: { type: "Date", default: Date.now }
+};
+
