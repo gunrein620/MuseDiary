@@ -10,6 +10,7 @@ import re
 import requests
 from dotenv import load_dotenv
 from db.seed_data import seed_database
+from ai import generate_mood_report
 
 load_dotenv()
 
@@ -167,17 +168,18 @@ def daily_mood():
 @app.route("/count", methods=["GET", "POST"])
 def count():
     user_id = session.get("userId")
+    if not user_id:
+        return redirect(url_for("login"))
+
     entries = db.diary_entries.find_one({"userId": user_id}) or {}
     entries_data = entries.get("analysisData", [])  # analysisData 데이터 조회
     mood_mapping = db.mood_mapping.find_one({"userId": user_id}) or {}
 
-    if not user_id:
-        return redirect(url_for("login"))
-
     mood_counts = db.mood_mapping.find_one({"userId": user_id}) or {}
 
     if request.method == "POST":
-        print(f"테스트입니다.{entries_data}, {mood_mapping}")
+        ai_message = generate_mood_report(entries_data, mood_mapping)
+        session["ai_report_message"] = ai_message
         return redirect(url_for("ai_report"))
 
     return render_template(
@@ -216,7 +218,8 @@ def pleasure():
 @app.route("/ai_report")
 def ai_report():
     user_name = session.get("userId", "000")
-    return render_template("ai_report.html", user_name=user_name)
+    ai_message = session.get("ai_report_message")
+    return render_template("ai_report.html", user_name=user_name, ai_message=ai_message)
     
 
 
