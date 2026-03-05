@@ -115,22 +115,32 @@ def daily_mood():
         userId = session.get("userId")  # 사용자 로그인 Id get
         
         mood = request.form.get("mood") # 기분 아이콘 
-        content = request.form.get("content","") # 한줄 일기  
+        content = request.form.get("content","") # 한줄 일기
+        song = request.form.get(titles)  
         createdAt = datetime.datetime.now().strftime("%Y-%m-%d'T'%H:%M:%S") # 현재 날짜 시간
 
         # diary_entries 입력
         diaryEntriesData = {
             "content" :content,
             "createdAt" : datetime.datetime.now().strftime("%Y-%m-%d'T'%H:%M:%S"), # 현재 날짜 시간
-            "mood" : mood
+            "mood" : mood,
+            "song" : " "
         }
         db.diary_entries.update_one(
             {"userId" : userId},
             {"$push":{"analysisData" : diaryEntriesData}},
             upsert = True
         )
-        print("args:", request.args)
-        print("form:", request.form)
+        # 검증중~~
+        db.diary_entries.update_one(
+            {"userId" : userId},
+            {"$push":{"song" : song}},
+            upsert = True
+        )
+
+        # print("args:", request.args)
+        # print("form:", request.form)
+
         db.mood_mapping.update_one(
             {"userId" : userId},
             {"$inc" : {mood : 1}},
@@ -221,3 +231,4 @@ def crawl_genie_playlist(playlist_url):
 
 if __name__ == "__main__":
     app.run("0.0.0.0", port=8080, debug=True)
+
