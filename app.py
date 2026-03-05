@@ -182,6 +182,14 @@ def count():
             recommend_pleasure="-",
         )
     
+    # if request.method == "POST":
+    #     entries = db.diary_entries.find_one({"userId": user_id}) or {}
+    #     entries_data = entries.get("analysisData", []) # analysis_data에 데이터 저장
+
+    #     mood_mapping = list(collection.find_one({"userId": user_id}))
+
+    #     print(f"{entries_data}, {mood_mapping}")
+    
 @app.route("/happy")
 def happy():
     return render_template("happy.html")
@@ -200,6 +208,12 @@ def sad():
 @app.route("/pleasure")
 def pleasure():
     return render_template("pleasure.html")
+
+@app.route("/ai_report")
+def aiReport():
+    return render_template("ai_report.html")        
+    
+
 
 # 크롤링
 def crawl_genie_playlist(playlist_url):
