@@ -164,23 +164,22 @@ def daily_mood():
     return render_template("daily_mood.html")
 
 
-@app.route("/count", methods=["GET", "POST"])
+@app.route("/count", methods=["GET"])
 def count():
-    if request.method == "GET":
-        user_id = session.get("userId")
-        mood_counts = db.mood_mapping.find_one({"userId": user_id}) or {}
+    user_id = session.get("userId")
+    mood_counts = db.mood_mapping.find_one({"userId": user_id}) or {}
 
-        return render_template(
-            "count.html",
-            count_happy=mood_counts.get("happy", 0),
-            count_angry=mood_counts.get("angry", 0),
-            count_sad=mood_counts.get("sad", 0),
-            count_pleasure=mood_counts.get("pleasure", 0),
-            recommend_happy="-",
-            recommend_angry="-",
-            recommend_sad="-",
-            recommend_pleasure="-",
-        )
+    return render_template(
+        "count.html",
+        count_happy=mood_counts.get("happy", 0),
+        count_angry=mood_counts.get("angry", 0),
+        count_sad=mood_counts.get("sad", 0),
+        count_pleasure=mood_counts.get("pleasure", 0),
+        recommend_happy="-",
+        recommend_angry="-",
+        recommend_sad="-",
+        recommend_pleasure="-",
+    )
     
     # if request.method == "POST":
     #     entries = db.diary_entries.find_one({"userId": user_id}) or {}
@@ -210,8 +209,9 @@ def pleasure():
     return render_template("pleasure.html")
 
 @app.route("/ai_report")
-def aiReport():
-    return render_template("ai_report.html")        
+def ai_report():
+    user_name = session.get("userId", "000")
+    return render_template("ai_report.html", user_name=user_name)
     
 
 

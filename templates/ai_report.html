@@ -1,15 +1,155 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 분석 결과</title>
+    <style>
+        body {
+            margin: 0;
+            background: #f3f3f3;
+            color: #111;
+            font-family: "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+        }
 
-{% block content %}
-<div class="mood-container">
-    <!-- 되돌아가기 -->
-    <div class="back-nav">
-        <a href="{{ url_for('daily_mood') }}">
-            <span style="font-size: 1.5rem;">↩</span>
-        </a>
-    </div>
-<h3>분석페이지 </h3>
-    <div>mood-mapping</div>
-    <div>ai 분석</div>
-  </div>
-{% endblock content %}
+        .page {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 28px 40px 48px;
+        }
+
+        .top {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 70px;
+        }
+
+        .back-link {
+            font-size: 52px;
+            color: #111;
+            text-decoration: none;
+            line-height: 1;
+        }
+
+        .title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .title-icon {
+            width: 84px;
+            height: 84px;
+            border: 4px solid #111;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: 900;
+        }
+
+        .title {
+            margin: 0;
+            font-size: 66px;
+            font-weight: 900;
+            letter-spacing: -1px;
+        }
+
+        .report {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+        }
+
+        .robot-wrap {
+            width: 260px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .chip {
+            width: 155px;
+            height: 155px;
+            margin: 0 auto 16px;
+            border: 6px solid #111;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 66px;
+            font-weight: 900;
+            position: relative;
+        }
+
+        .chip::before,
+        .chip::after {
+            content: "";
+            position: absolute;
+            top: -18px;
+            width: 9px;
+            height: 12px;
+            background: #111;
+            border-radius: 3px;
+        }
+
+        .chip::before {
+            left: 24px;
+            box-shadow: 22px 0 #111, 44px 0 #111, 66px 0 #111, 88px 0 #111;
+        }
+
+        .chip::after {
+            right: 24px;
+            box-shadow: -22px 0 #111, -44px 0 #111, -66px 0 #111, -88px 0 #111;
+        }
+
+        .robot {
+            font-size: 190px;
+            line-height: 1;
+        }
+
+        .message {
+            margin: 0;
+            font-size: 56px;
+            font-weight: 500;
+            line-height: 1.45;
+            letter-spacing: -0.5px;
+            text-align: center;
+            white-space: pre-line;
+            flex: 1;
+        }
+
+        @media (max-width: 900px) {
+            .title { font-size: 44px; }
+            .title-icon { width: 62px; height: 62px; font-size: 28px; }
+            .message { font-size: 34px; }
+            .robot { font-size: 130px; }
+            .chip { width: 120px; height: 120px; font-size: 48px; }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <header class="top">
+        <a href="{{ url_for('count') }}" class="back-link" aria-label="뒤로가기">&#8634;</a>
+        <div class="title-wrap">
+            <div class="title-icon">AI</div>
+            <h1 class="title">{{ user_name }} 님 분석결과</h1>
+        </div>
+    </header>
+
+    <section class="report">
+        <div class="robot-wrap">
+            <div class="chip">AI</div>
+            <div class="robot">🤖</div>
+        </div>
+        <p class="message">현재 매우 기분좋음과 안좋음의 비율이
+이상적인 형태로 되어 있습니다.
+그러나 이러한 평범한 바이오 리듬이라
+고하여 방심은 금물입니다...</p>
+    </section>
+</div>
+</body>
+</html>
