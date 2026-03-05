@@ -166,21 +166,33 @@ def daily_mood():
 
 @app.route("/count", methods=["GET", "POST"])
 def count():
-    if request.method == "GET":
-        user_id = session.get("userId")
-        mood_counts = db.mood_mapping.find_one({"userId": user_id}) or {}
+    user_id = session.get("userId")
+    if not user_id:
+        return redirect(url_for("login"))
 
-        return render_template(
-            "count.html",
-            count_happy=mood_counts.get("happy", 0),
-            count_angry=mood_counts.get("angry", 0),
-            count_sad=mood_counts.get("sad", 0),
-            count_pleasure=mood_counts.get("pleasure", 0),
-            recommend_happy="-",
-            recommend_angry="-",
-            recommend_sad="-",
-            recommend_pleasure="-",
-        )
+    mood_counts = db.mood_mapping.find_one({"userId": user_id}) or {}
+
+    if request.method == "POST":
+        entries = db.diary_entries.find_one({"userId": user_id}) or {}
+        entries_data = entries.get("analysisData", [])  # analysisData 데이터 조회
+        mood_mapping = db.mood_mapping.find_one({"userId": user_id}) or {}
+
+        print(f"테스트입니다.{entries_data}, {mood_mapping}")
+        return redirect(url_for("ai_report"))
+
+    return render_template(
+        "count.html",
+        count_happy=mood_counts.get("happy", 0),
+        count_angry=mood_counts.get("angry", 0),
+        count_sad=mood_counts.get("sad", 0),
+        count_pleasure=mood_counts.get("pleasure", 0),
+        recommend_happy="-",
+        recommend_angry="-",
+        recommend_sad="-",
+        recommend_pleasure="-",
+    )
+    
+
     
 @app.route("/happy")
 def happy():
@@ -200,6 +212,13 @@ def sad():
 @app.route("/pleasure")
 def pleasure():
     return render_template("pleasure.html")
+
+@app.route("/ai_report")
+def ai_report():
+    user_name = session.get("userId", "000")
+    return render_template("ai_report.html", user_name=user_name)
+    
+
 
 # 크롤링
 def crawl_genie_playlist(playlist_url):
