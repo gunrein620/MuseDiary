@@ -16,7 +16,22 @@
         <div>{{ count_pleasure }}</div>
     </article>
 
-    <article>
+    <article style="display: flex; gap: 150px; justify-content: center;">
+        <div>
+            <img src="{{ url_for('static', filename='image/happy.png') }}" style="width: 50px;">
+        </div>
+        <div>
+            <img src="{{ url_for('static', filename='image/angry.png') }}" style="width: 50px;">
+        </div>
+        <div>
+            <img src="{{ url_for('static', filename='image/sad.png') }}" style="width: 50px;">
+        </div>
+        <div>
+            <img src="{{ url_for('static', filename='image/pleasure.png') }}" style="width: 50px;">
+        </div>
+    </article>
+
+    <article style="display: flex; gap: 150px; justify-content: center;">
         <div>{{ recommend_happy }}</div>
         <div>{{ recommend_angry }}</div>
         <div>{{ recommend_sad }}</div>
@@ -24,7 +39,7 @@
     </article>
 <form method="POST" action="{{ url_for('count') }}">
     <div class="align">
-    <button type="submit" class="btn btn-primary btn-jelly">
+    <button type="submit" class="btn-jelly-">
         분석하기
     </button>
 </div>
