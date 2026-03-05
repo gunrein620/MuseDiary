@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup
 import jwt
 import datetime
 import os
+import random
+import re
 import requests
 from dotenv import load_dotenv
 
@@ -24,6 +26,25 @@ db = client.get_default_database()
 app = Flask(__name__)
 app.config["SECRET_KEY"] = secret_key
 bcrypt = Bcrypt(app) # bcrypt 초기화
+
+MOOD_CONFIG = {
+    "happy": {
+        "template": "happy.html",
+        "playlist_url": os.getenv("GENIE_PLAYLIST_HAPPY", "https://www.genie.co.kr/playlist/detailView?plmSeq=31070"),
+    },
+    "angry": {
+        "template": "angry.html",
+        "playlist_url": os.getenv("GENIE_PLAYLIST_ANGRY", "https://www.genie.co.kr/playlist/detailView?plmSeq=17505"),
+    },
+    "sad": {
+        "template": "sad.html",
+        "playlist_url": os.getenv("GENIE_PLAYLIST_SAD", "https://www.genie.co.kr/playlist/detailView?plmSeq=31065"),
+    },
+    "pleasure": {
+        "template": "pleasure.html",
+        "playlist_url": os.getenv("GENIE_PLAYLIST_PLEASURE", "https://www.genie.co.kr/playlist/detailView?plmSeq=17266"),
+    },
+}
 
 # 홈
 @app.route("/")
@@ -95,36 +116,48 @@ def daily_mood():
         userId = session.get("userId")  # 사용자 로그인 Id get
         
         mood = request.form.get("mood") # 기분 아이콘 
-        content = request.form.get("content","") # 한줄 일기  
+        content = request.form.get("content","") # 한줄 일기
         createdAt = datetime.datetime.now().strftime("%Y-%m-%d'T'%H:%M:%S") # 현재 날짜 시간
 
+        mood_info = MOOD_CONFIG.get(mood)
+        if not mood_info:
+            return "잘못된 mood 값입니다.", 400
+
+        song = "추천곡 없음"
+        singer = ""
+
+        try:
+            tracks = crawl_genie_playlist(mood_info["playlist_url"])
+            if tracks:
+                picked = random.choice(tracks)
+                song = picked["song"]
+                singer = picked["singer"]
+        except Exception as e:
+            print(f"[{mood}] 크롤링 실패: {e}")
+
         # diary_entries 입력
+        song_for_save = f"{song} - {singer}" if singer else song
         diaryEntriesData = {
             "content" :content,
-            "createdAt" : datetime.datetime.now().strftime("%Y-%m-%d'T'%H:%M:%S"), # 현재 날짜 시간
-            "mood" : mood
+            "createdAt" : createdAt,
+            "mood" : mood,
+            "song" : song_for_save
         }
         db.diary_entries.update_one(
             {"userId" : userId},
             {"$push":{"analysisData" : diaryEntriesData}},
             upsert = True
         )
-        print("args:", request.args)
-        print("form:", request.form)
+
+        # print("args:", request.args)
+        # print("form:", request.form)
+
         db.mood_mapping.update_one(
             {"userId" : userId},
             {"$inc" : {mood : 1}},
             upsert = True
         )
-        # 클릭시 페이지 넘길꺼
-        if mood == "happy" :
-            return render_template("happy.html")
-        elif mood == "angry" :
-            return render_template("angry.html")
-        elif mood == "sad" :
-            return render_template("sad.html")
-        elif mood == "pleasure" :
-            return render_template("sad.html")
+        return render_template(mood_info["template"], singer=singer, song=song)
 
         # return redirect(url_for("daily_mood"))
     return render_template("daily_mood.html")
@@ -167,6 +200,52 @@ def sad():
 def pleasure():
     return render_template("pleasure.html")
 
+# 크롤링
+def crawl_genie_playlist(playlist_url):
+    headers = {'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36'}
+    res = requests.get(playlist_url, headers=headers)
+    res.raise_for_status()
+    soup = BeautifulSoup(res.text, "html.parser")
+
+    tracks = []
+    seen = set()
+    rows = soup.select("table.list-wrap tbody tr")
+
+    for row in rows:
+        title_el = row.select_one("a.title")
+        if not title_el:
+            continue
+        artist_el = row.select_one("a.artist")
+        song = normalize_song_text(title_el.get_text(" ", strip=True))
+        singer = normalize_song_text(artist_el.get_text(" ", strip=True)) if artist_el else ""
+
+        if not song:
+            continue
+        key = (song, singer)
+        if key in seen:
+            continue
+        seen.add(key)
+        tracks.append({"song": song, "singer": singer})
+
+    # 일부 페이지 구조가 다를 때 fallback
+    if not tracks:
+        scraps = soup.select("table.list-wrap a.title") or soup.select("a.title")
+        for i in scraps:
+            song = normalize_song_text(i.get_text(" ", strip=True))
+            if not song or song in seen:
+                continue
+            seen.add(song)
+            tracks.append({"song": song, "singer": ""})
+
+    return tracks
+
+
+def normalize_song_text(text):
+    cleaned = text.strip()
+    cleaned = re.sub(r"^\s*TITLE\s*", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned
 
 if __name__ == "__main__":
     app.run("0.0.0.0", port=8080, debug=True)
+

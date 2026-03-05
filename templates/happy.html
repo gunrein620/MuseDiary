@@ -19,7 +19,7 @@
 
     <!-- 노래 추천 -->
     <div class="song-info">
-        <p>추천 노래 : {{ singer }} - {{ song }}</p>
+        <p>추천 노래 : {% if singer %}{{ singer }} - {{ song }}{% else %}{{ song }}{% endif %}</p>
 
         <a href="" target="_blank" class="youtube-link">링크를 눌러주세요!</a>
     </div>
