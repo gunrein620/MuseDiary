@@ -6,6 +6,7 @@ import jwt
 import datetime
 import os
 import random
+import re
 import requests
 from dotenv import load_dotenv
 
@@ -116,25 +117,35 @@ def daily_mood():
         
         mood = request.form.get("mood") # 기분 아이콘 
         content = request.form.get("content","") # 한줄 일기
-        song = request.form.get(titles)  
         createdAt = datetime.datetime.now().strftime("%Y-%m-%d'T'%H:%M:%S") # 현재 날짜 시간
 
+        mood_info = MOOD_CONFIG.get(mood)
+        if not mood_info:
+            return "잘못된 mood 값입니다.", 400
+
+        song = "추천곡 없음"
+        singer = ""
+
+        try:
+            tracks = crawl_genie_playlist(mood_info["playlist_url"])
+            if tracks:
+                picked = random.choice(tracks)
+                song = picked["song"]
+                singer = picked["singer"]
+        except Exception as e:
+            print(f"[{mood}] 크롤링 실패: {e}")
+
         # diary_entries 입력
+        song_for_save = f"{song} - {singer}" if singer else song
         diaryEntriesData = {
             "content" :content,
-            "createdAt" : datetime.datetime.now().strftime("%Y-%m-%d'T'%H:%M:%S"), # 현재 날짜 시간
+            "createdAt" : createdAt,
             "mood" : mood,
-            "song" : " "
+            "song" : song_for_save
         }
         db.diary_entries.update_one(
             {"userId" : userId},
             {"$push":{"analysisData" : diaryEntriesData}},
-            upsert = True
-        )
-        # 검증중~~
-        db.diary_entries.update_one(
-            {"userId" : userId},
-            {"$push":{"song" : song}},
             upsert = True
         )
 
@@ -146,25 +157,6 @@ def daily_mood():
             {"$inc" : {mood : 1}},
             upsert = True
         )
-        mood_info = MOOD_CONFIG.get(mood)
-        if not mood_info:
-            return "잘못된 mood 값입니다.", 400
-
-        song = "추천곡 없음"
-        singer = "-"
-
-        try:
-            titles = crawl_genie_playlist(mood_info["playlist_url"])
-            if titles:
-                picked = random.choice(titles)
-                if " - " in picked:
-                    song, singer = [x.strip() for x in picked.split(" - ", 1)]
-                else:
-                    song = picked
-                    singer = "Unknown Artist"
-        except Exception as e:
-            print(f"[{mood}] 크롤링 실패: {e}")
-
         return render_template(mood_info["template"], singer=singer, song=song)
 
         # return redirect(url_for("daily_mood"))
@@ -215,19 +207,44 @@ def crawl_genie_playlist(playlist_url):
     res.raise_for_status()
     soup = BeautifulSoup(res.text, "html.parser")
 
-    songs = []
-    scraps = soup.select("table.list-wrap a.title")
-
-    if not scraps:
-        scraps = soup.select("a.title")
-
-    for i in scraps :
-        k = i.get_text(strip=True)
-        if k:
-            songs.append(k)
+    tracks = []
     seen = set()
-    titles = [x for x in songs if not (x in seen or seen.add(x))]
-    return titles
+    rows = soup.select("table.list-wrap tbody tr")
+
+    for row in rows:
+        title_el = row.select_one("a.title")
+        if not title_el:
+            continue
+        artist_el = row.select_one("a.artist")
+        song = normalize_song_text(title_el.get_text(" ", strip=True))
+        singer = normalize_song_text(artist_el.get_text(" ", strip=True)) if artist_el else ""
+
+        if not song:
+            continue
+        key = (song, singer)
+        if key in seen:
+            continue
+        seen.add(key)
+        tracks.append({"song": song, "singer": singer})
+
+    # 일부 페이지 구조가 다를 때 fallback
+    if not tracks:
+        scraps = soup.select("table.list-wrap a.title") or soup.select("a.title")
+        for i in scraps:
+            song = normalize_song_text(i.get_text(" ", strip=True))
+            if not song or song in seen:
+                continue
+            seen.add(song)
+            tracks.append({"song": song, "singer": ""})
+
+    return tracks
+
+
+def normalize_song_text(text):
+    cleaned = text.strip()
+    cleaned = re.sub(r"^\s*TITLE\s*", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned
 
 if __name__ == "__main__":
     app.run("0.0.0.0", port=8080, debug=True)
