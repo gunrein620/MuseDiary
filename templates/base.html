@@ -12,17 +12,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <nav class="d-flex justify-content-center p-3">
-        <a href="{{ url_for('login') }}" class="mx-3 text-decoration-none">LOGIN</a>
-        <a href="{{ url_for('register') }}" class="mx-3 text-decoration-none">REGISTER</a>
-        <a href="{{ url_for('daily_mood') }}" class="mx-3 text-decoration-none">DAILY MOOD</a>
-        <a href="{{ url_for('happy') }}" class="mx-3 text-decoration-none">희</a>
-        <a href="{{ url_for('angry') }}" class="mx-3 text-decoration-none">노</a>
-        <a href="{{ url_for('sad') }}" class="mx-3 text-decoration-none">애</a>
-        <a href="{{ url_for('pleasure') }}" class="mx-3 text-decoration-none">락</a>
-        <a href="{{ url_for('count') }}" class="mx-3 text-decoration-none">count</a>
-        <a href="{{ url_for('ai_report') }}" class="mx-3 text-decoration-none">ai_report</a>
-    </nav>
+    <header class="brand-header" aria-label="브랜드 헤더">
+        <h1 class="brand-header-title">희노애락 AI</h1>
+        <p class="brand-header-subtitle">오늘의 감정을 기록하고, AI와 함께 돌아보세요.</p>
+    </header>
 
     <main>
         {% block content %}{% endblock content %}
