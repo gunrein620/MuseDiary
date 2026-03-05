@@ -169,6 +169,16 @@ def count():
     user_id = session.get("userId")
     mood_counts = db.mood_mapping.find_one({"userId": user_id}) or {}
 
+    if request.method == "POST":
+        print("POST /count hit", request.form, request.get_json(silent=True))
+        return "OK", 200
+        entries = db.diary_entries.find_one({"userId": user_id}) or {}
+        entries_data = entries.get("analysisData", []) # analysis_data에 데이터 저장
+
+        mood_mapping = list(collection.find_one({"userId": user_id}))
+
+        print(f"테스트입니다.{entries_data}, {mood_mapping}")
+
     return render_template(
         "count.html",
         count_happy=mood_counts.get("happy", 0),
@@ -181,13 +191,7 @@ def count():
         recommend_pleasure="-",
     )
     
-    # if request.method == "POST":
-    #     entries = db.diary_entries.find_one({"userId": user_id}) or {}
-    #     entries_data = entries.get("analysisData", []) # analysis_data에 데이터 저장
 
-    #     mood_mapping = list(collection.find_one({"userId": user_id}))
-
-    #     print(f"{entries_data}, {mood_mapping}")
     
 @app.route("/happy")
 def happy():
